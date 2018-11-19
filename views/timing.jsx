@@ -1,4 +1,5 @@
-import React from 'react';
+/* eslint camelcase: off, jsx-a11y/click-events-have-key-events: off */
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { ArrowBox, Colors } from 'watson-react-components';
 
@@ -7,24 +8,27 @@ const Word = (props) => {
     e.preventDefault();
     props.onClick();
   }
+  const {
+    alternatives, onMouseEnter, onMouseLeave, start_time, showDetails, end_time,
+  } = props;
   return (
     <span
       role="button"
       tabIndex={0}
       className="word arrow-box-container"
       onClick={click}
-      onMouseEnter={props.onMouseEnter}
-      onMouseLeave={props.onMouseLeave}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <a className="base--a" href="#alternative">
-        {props.alternatives[0].word}
+        {alternatives[0].word}
       </a>
-      {props.alternatives.length > 1 ? (
-        <sup>{props.alternatives.length}</sup>
+      {alternatives.length > 1 ? (
+        <sup>{alternatives.length}</sup>
       ) : null}
       <ArrowBox
         direction="top"
-        show={props.showDetails}
+        show={showDetails}
         color={Colors.purple_50}
       >
         <div
@@ -33,10 +37,10 @@ const Word = (props) => {
           }}
         >
           <p>
-            {props.start_time}s - {props.end_time}s
+            {start_time}s - {end_time}s
           </p>
           <ul className="base--ul">
-            {props.alternatives.map(w => (
+            {alternatives.map(w => (
               <li key={w.word} className="base--li">
                 {w.word}: {Math.round(w.confidence * 1000) / 10}%
               </li>
@@ -54,26 +58,26 @@ Word.propTypes = {
   onMouseLeave: PropTypes.func.isRequired,
   alternatives: PropTypes.array.isRequired, // eslint-disable-line
   showDetails: PropTypes.bool.isRequired,
-  start_time: PropTypes.string.isRequired,
-  end_time: PropTypes.string.isRequired,
+  start_time: PropTypes.number.isRequired,
+  end_time: PropTypes.number.isRequired,
   onClick: PropTypes.func.isRequired,
 };
 
-const TimingView = React.createClass({
-  propTypes: {
-    messages: PropTypes.array.isRequired // eslint-disable-line
-  },
+export class TimingView extends Component {
+  constructor() {
+    super();
+    this.state = { clickSelected: null, mouseSelected: null };
+  }
 
-  getInitialState() {
-    return { clickSelected: null, mouseSelected: null };
-  },
   getSelected() {
-    return this.state.clickSelected || this.state.mouseSelected;
-  },
+    const { clickSelected, mouseSelected } = this.state;
+    return clickSelected || mouseSelected;
+  }
+
   /**
      * Two UI interactions: hover and click
      *
-     * If anything gets clicked, it overrides the hover interaction until it is hidden 
+     * If anything gets clicked, it overrides the hover interaction until it is hidden
      * by a second click
      *
      * @param clickSelected
@@ -85,14 +89,15 @@ const TimingView = React.createClass({
       clickSelected = null;
     }
     this.setState({ clickSelected, mouseSelected: null });
-  },
+  }
 
   mouseSelect(mouseSelected) {
     if (this.state.clickSelected) {
       return;
     }
     this.setState({ mouseSelected });
-  },
+  }
+
   render() {
     try {
       const results = this.props.messages
@@ -117,7 +122,13 @@ const TimingView = React.createClass({
       console.log(ex);
       return <span>{ex.message}</span>;
     }
-  },
-});
+  }
+}
+
+
+TimingView.propTypes = {
+  messages: PropTypes.array.isRequired, // eslint-disable-line
+};
+
 
 export default TimingView;

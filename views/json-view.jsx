@@ -1,26 +1,14 @@
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
-import { JsonLink, RadioGroup, Radio } from 'watson-react-components';
+import { RadioGroup, Radio } from 'watson-react-components';
+import { JsonInline } from './json-inline.jsx';
 
 const RAW = 'raw';
 const FORMATTED = 'formatted';
 
 function makeJsonLink(obj, i) {
-  if (!obj) {
-    return null; // (<div key={`jsonlink-${i}`} />);
-  }
-
-  const json = JSON.stringify(obj);
-  // space after commas to help browsers decide where breakpoints should go on small screens
-  const str = (json.length <= 78) ? json
-    : `${json.substr(0, 14)} ...${json.substr(-60).replace(/,/g, ', ')}`;
-
-  return (
-    <JsonLink json={obj} key={`jsonlink-${i}`}>
-      <code>{str}</code>
-    </JsonLink>
-  );
+  return (obj ? <JsonInline json={obj} key={`jsonlink-${i}`} /> : null);
 }
 
 // we want to insert nulls into the array rather than remove the elements so that the non-null
@@ -30,7 +18,8 @@ function nullImterim(msg) {
     // some messages can have both results (final or interim) and speaker labels
     // in that case we want to show it for the speaker_labels, even if the result is interim
     return msg;
-  } else if (msg.results && msg.results.length && !msg.results[0].final) {
+  }
+  if (msg.results && msg.results.length && !msg.results[0].final) {
     return null;
   }
   return msg;
@@ -66,29 +55,23 @@ function renderRawMessage(msg, i) {
   );
 }
 
-export default React.createClass({
-  displayName: 'JsonView',
-
-  propTypes: {
-    raw: PropTypes.array.isRequired, // eslint-disable-line
-    formatted: PropTypes.array.isRequired, // eslint-disable-line
-  },
-
-  getInitialState() {
-    return { showRaw: true, interim: false };
-  },
+export class JsonView extends Component {
+  constructor() {
+    super();
+    this.state = { showRaw: true, interim: false };
+  }
 
   handleShowChange(show) {
     this.setState({
       showRaw: show === RAW,
     });
-  },
+  }
 
   handleInterimChange() {
-    this.setState({
-      interim: !this.state.interim,
-    });
-  },
+    this.setState(preState => ({
+      interim: !preState.interim,
+    }));
+  }
 
   render() {
     // note: this originally rendered the JSON inline with a <Code> tag, but that silently
@@ -143,5 +126,12 @@ export default React.createClass({
       console.log(ex);
       return <div>{ex.message}</div>;
     }
-  },
-});
+  }
+};
+
+JsonView.propTypes = {
+  raw: PropTypes.array.isRequired, // eslint-disable-line
+  formatted: PropTypes.array.isRequired, // eslint-disable-line
+};
+
+export default JsonView;
